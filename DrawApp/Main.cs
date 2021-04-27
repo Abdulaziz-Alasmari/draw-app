@@ -16,7 +16,7 @@ namespace DrawApp
         List<Shape> shapes = new List<Shape>();
 
         ShapeType selectedShapeType = ShapeType.Line;
-        Pen pen = new Pen(Brushes.Black, 5);
+        Pen pen = new Pen(Brushes.Black, 10);
 
         /**
          * Tracking drawing line
@@ -44,8 +44,16 @@ namespace DrawApp
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (IsSelectingShape(e.Location))
+            if(UnselectIfNeeded(e.Location))
             {
+                ((Panel)sender).Invalidate();
+            }
+
+            int selectedShapeIndex = IsSelectingShape(e.Location);
+
+            if (selectedShapeIndex != -1)
+            {
+                MarkAsSelected(selectedShapeIndex);
                 ((Panel)sender).Invalidate();
                 return;
             }
@@ -65,7 +73,23 @@ namespace DrawApp
             }
         }
 
-        protected bool IsSelectingShape(Point mouseClickLocation)
+        public bool UnselectIfNeeded(Point mouseClickLocation)
+        {
+            int indexOfSelectedShape = IsSelectingShape(mouseClickLocation);
+
+            for (int i = 0; i < shapes.Count; i++)
+            {
+                if(shapes[i].IsSelected)
+                {
+                    shapes[i].IsSelected = (i == indexOfSelectedShape);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected int IsSelectingShape(Point mouseClickLocation)
         {
             for (int i = 0; i < shapes.Count; i++)
             {
@@ -73,13 +97,20 @@ namespace DrawApp
                 gPaths.AddLine(shapes[i].StartPoint, shapes[i].EndPoint);
                 if(gPaths.IsOutlineVisible(mouseClickLocation, pen))
                 {
-                    shapes[i].IsSelected = true;
-                    shapes[i].SetPen(new Pen(Brushes.Red, pen.Width));
-                    return true;
+                    //shapes[i].IsSelected = true;
+                    //shapes[i].SetPen(new Pen(Brushes.Red, pen.Width));
+                    //return true;
+                    return i;
                 }
             }
 
-            return false;
+            return -1;
+        }
+
+        protected void MarkAsSelected(int shapeIndex)
+        {
+            shapes[shapeIndex].IsSelected = true;
+            shapes[shapeIndex].SetPen(new Pen(Brushes.Red, pen.Width));
         }
 
         private void button3_Click(object sender, EventArgs e)
