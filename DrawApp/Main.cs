@@ -16,7 +16,7 @@ namespace DrawApp
         List<Shape> shapes = new List<Shape>();
 
         ShapeType selectedShapeType = ShapeType.Line;
-        Pen pen = new Pen(Brushes.Black, 10);
+        Pen pen = new Pen(Brushes.Black, 5);
 
         /**
          * Tracking drawing line
@@ -26,6 +26,14 @@ namespace DrawApp
         Point currentPoint;
         bool isMouseDown = false;
         GraphicsPath gPaths = new GraphicsPath();
+
+        /**
+         * Tracking rezing shapes
+         * 
+         */
+        bool isRezing = false;
+        int rezingShapeIndex = -1;
+        int rezingSelectorIndex = -1;
 
         public Main()
         {
@@ -37,7 +45,7 @@ namespace DrawApp
             base.OnPaint(e);
             foreach (Shape shape in shapes)
             {
-                if (shape.IsSelected == false) shape.SetPen(pen);
+                //if (shape.IsSelected == false) shape.SetPen(pen);
                 shape.Draw(e.Graphics);
             }
         }
@@ -81,12 +89,43 @@ namespace DrawApp
             {
                 if(shapes[i].IsSelected)
                 {
+                    // check is rec selected? if yes then cache data
+                    int recIndex = IsMouseDownOnSelector(shapes[i], mouseClickLocation);
+                    if (recIndex > -1)
+                    {
+                        isRezing = true;
+                        rezingShapeIndex = i;
+                        rezingSelectorIndex = recIndex;
+                        return true; // so if the mouse position is not on the line it will unselect the line :/
+                    }
+
+                    //
                     shapes[i].IsSelected = (i == indexOfSelectedShape);
+
                     return true;
                 }
             }
 
             return false;
+        }
+
+        protected int IsMouseDownOnSelector(Shape shape, Point mouseClickLocation)
+        {
+            for (int i = 0; i < shape.Selectors.Count; i++)
+            {
+                gPaths.Reset();
+                gPaths.AddRectangle(shape.Selectors[i]);
+                if (gPaths.IsVisible(mouseClickLocation) || gPaths.IsOutlineVisible(mouseClickLocation, pen))
+                {
+                    //shapes[i].IsSelected = true;
+                    //shapes[i].SetPen(new Pen(Brushes.Red, pen.Width));
+                    //MessageBox.Show("Test");
+                    return i;
+                }
+            }
+            
+
+            return -1;
         }
 
         protected int IsSelectingShape(Point mouseClickLocation)
@@ -128,7 +167,10 @@ namespace DrawApp
 
             if (selectedShapeType == ShapeType.Line)
             {
-                Line lastLine = shapes[shapes.Count - 1] as Line;
+                //Line lastLine = shapes[shapes.Count - 1] as Line;
+                isRezing = false;
+                rezingSelectorIndex = -1;
+                rezingShapeIndex = -1;
                 isMouseDown = false;
             }
         }
@@ -140,7 +182,18 @@ namespace DrawApp
             {
                 if (isMouseDown)
                 {
-                    shapes[shapes.Count - 1].EndPoint = e.Location;
+                    if(isRezing)
+                    {
+                        if (rezingSelectorIndex == 0 /* Start point */)
+                            shapes[rezingShapeIndex].StartPoint = e.Location;
+                        else if (rezingSelectorIndex == 1 /* End point */ )
+                            shapes[rezingShapeIndex].EndPoint = e.Location;
+                        else
+                            throw new Exception("Selecotr index not 0 or 1");
+                    }
+                    else
+                        shapes[shapes.Count - 1].EndPoint = e.Location;
+
                     ((Panel)sender).Invalidate();
                 }
             }
