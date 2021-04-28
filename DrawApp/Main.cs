@@ -34,7 +34,7 @@ namespace DrawApp
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
             base.OnPaint(e);
-            foreach (Shape shape in shapes) shape.SetPen(pen).Draw(e.Graphics);
+            foreach (Shape shape in shapes) shape.Draw(e.Graphics);
         }
 
         private void panel1_MouseDown(object sender, MouseEventArgs e)
@@ -58,9 +58,14 @@ namespace DrawApp
             this.selectedShapeType = ShapeType.Circle;
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void penPropButton_Click(object sender, EventArgs e)
         {
-            //.. code
+            PenProps penProps = new PenProps();
+            if (penProps.ShowDialog() == DialogResult.OK)
+            {
+                    pen = penProps.NewPen;
+            };
+            penProps.Dispose();
         }
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
@@ -90,5 +95,7 @@ namespace DrawApp
         {
             selectedShapeType = ShapeType.Line;
         }
+
+        
     }
 }
