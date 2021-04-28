@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DrawApp
 {
@@ -12,10 +8,12 @@ namespace DrawApp
         public Point StartPoint { get; set; }
         public Point EndPoint { get; set; }
         public Pen Pen { get; protected set; }
+        public bool IsSelected { get; set; }
 
         public Shape(Pen pen)
         {
             SetPen(pen);
+            IsSelected = false;
         }
 
         // draw func
